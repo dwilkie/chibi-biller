@@ -1,5 +1,5 @@
 ChibiBiller::Application.routes.draw do
-  request_ip_constraint = lambda { |request| request.remote_ip == ENV["ACL_WHITELIST"].to_s.split(";").first }
+  request_ip_constraint = lambda { |request| ENV["ACL_WHITELIST"].to_s.split(";").include?(request.remote_ip) }
   constraints request_ip_constraint do
     resources :charge_request_results, :only => :create
   end

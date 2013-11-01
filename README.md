@@ -29,6 +29,12 @@ bundle
 sudo restart chibi-biller
 ```
 
+## Testing
+
+```shell
+curl -i -u user:secret -d "" "http://127.0.0.1:5000/charge_request_results"
+```
+
 ## Logs
 
-Logs are found at `/var/log/chibi-biller`
+Logs are found at `/var/log/chibi-biller` and `RAILS_ROOT/logs/production.log`
