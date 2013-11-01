@@ -4,6 +4,8 @@ ChibiBiller is the API used to interface into Telco billing APIs
 
 ## Deployment
 
+If your environment variables have changed:
+
 ```shell
 cd chibi-biller
 cp .env .env.production
@@ -15,6 +17,15 @@ bundle
 
 cp .env.production .env
 rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller
+sudo restart chibi-biller
+```
+
+If your environment variables have not changed:
+
+```shell
+cd chibi-biller
+git pull origin master
+bundle
 sudo restart chibi-biller
 ```
 
