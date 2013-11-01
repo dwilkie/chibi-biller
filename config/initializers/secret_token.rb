@@ -9,4 +9,4 @@
 
 # Make sure your secret_key_base is kept private
 # if you're sharing your code publicly.
-ChibiBiller::Application.config.secret_key_base = '55be09b1e2a56079d4aceefb488fd37aadfde3deb469731d49336b0fee5bd18ccf70f4ba6583356c1456ac262d43273a5ad94891f5defe8d185b7cf7eedba25d'
+ChibiBiller::Application.config.secret_key_base = '56d1badcb157cd73474e4f9826be011a6b50e781fa07711bc4f4824f369ce3e15f74d056078d69edc8be1bc1c3c9bca5ffc3ee5a697d1334941a6959a6597927'
