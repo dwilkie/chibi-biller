@@ -7,7 +7,7 @@ describe "Charge Request Result" do
         options[:user] || ENV["CHIBI_BILLER_CHARGE_REQUEST_USER_QB"],
         options[:password] || ENV["CHIBI_BILLER_CHARGE_REQUEST_PASSWORD_QB"]
       ),
-      'REMOTE_ADDR' => options[:remote_ip] || ENV["QB_BILLING_API_HOST_IP"]
+      'REMOTE_ADDR' => options[:remote_ip] || ENV["ACL_WHITELIST"].split(";").first
     }
   end
 
