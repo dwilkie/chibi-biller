@@ -7,7 +7,7 @@ gem 'resque'
 gem "unicorn"
 
 group :development, :test do
-  gem 'foreman'
+  gem 'foreman', :git => 'git://github.com/ddollar/foreman.git'
   gem 'rspec-rails'
 end
 
