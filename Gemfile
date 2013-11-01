@@ -12,7 +12,6 @@ group :development, :test do
 end
 
 group :test do
-  gem 'sqlite3'
   gem 'spork-rails', :git => 'git://github.com/sporkrb/spork-rails.git'
   gem 'mock_redis'
   gem 'webmock'
