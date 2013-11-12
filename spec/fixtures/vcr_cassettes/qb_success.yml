@@ -1,0 +1,32 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: <%= url %>
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Tue, 12 Nov 2013 07:15:33 GMT
+      Server:
+      - Apache/2.2.3 (CentOS)
+      X-Powered-By:
+      - PHP/5.1.6
+      Content-Length:
+      - '49'
+      Connection:
+      - close
+      Content-Type:
+      - text/html; charset=UTF-8
+    body:
+      encoding: UTF-8
+      string: ",\r\nThe content was received successfully, Thanks."
+    http_version:
+  recorded_at: Tue, 12 Nov 2013 07:15:34 GMT
+recorded_with: VCR 2.3.0

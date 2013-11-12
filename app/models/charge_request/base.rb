@@ -12,7 +12,7 @@ module ChargeRequest
       HTTParty.send(
         http_method,
         request_url,
-        request_params
+        :query => request_params
       )
     end
   end
