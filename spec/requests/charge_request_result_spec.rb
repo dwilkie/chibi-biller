@@ -12,8 +12,9 @@ describe "Charge Request Result" do
   end
 
   def post_charge_request_results_path(options = {})
+    params = options.slice!(:user, :password, :remote_ip)
     post(
-      charge_request_results_path, {}, authentication_params(options)
+      charge_request_results_path, params, authentication_params(options)
     )
   end
 
@@ -30,12 +31,20 @@ describe "Charge Request Result" do
 
     context "with correct authentication" do
       context "and an allowed ip" do
+        include ResqueHelpers
+
         before do
-          post_charge_request_results_path
+          do_background_task(:queue_only => true) do
+            post_charge_request_results_path(
+              "TRANID" => "1",
+              "RESULT" => "Successful."
+            )
+          end
         end
 
-        it "should grant access" do
+        it "should queue a job for updating the charge request" do
           response.code.should == "201"
+          assert_chibi_charge_request_updater_job("1", "successful", "qb", nil)
         end
       end
 
