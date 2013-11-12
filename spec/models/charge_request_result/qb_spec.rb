@@ -33,7 +33,7 @@ module ChargeRequestResult
         actual_reason_string = ", '#{ASSERTED_REASON_KEY}' => '#{sample_result[:reason][:actual]}'" if sample_result[:reason]
         context_string = "{'#{ASSERTED_ID_KEY}' => '#{SAMPLE_ID}', '#{ASSERTED_RESULT_KEY}' => '#{sample_result[:result][:actual]}'#{actual_reason_string}}"
         context "#params => #{context_string}" do
-          subject { ChargeRequestResult::Qb.new(sample_result_params(sample_result)) }
+          subject { Qb.new(sample_result_params(sample_result)) }
 
           before do
             do_background_task(:queue_only => true) { subject.save! }

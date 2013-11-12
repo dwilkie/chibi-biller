@@ -4,7 +4,8 @@ ruby "2.0.0"
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.0.0'
 gem 'resque'
-gem "unicorn"
+gem 'unicorn'
+gem 'httparty'
 
 group :development, :test do
   gem 'foreman', :git => 'git://github.com/ddollar/foreman.git'

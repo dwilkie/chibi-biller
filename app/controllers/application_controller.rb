@@ -8,6 +8,6 @@ class ApplicationController < ActionController::Base
   private
 
   def authorize
-    authenticate_or_request_with_http_basic {|u, p| u == ENV["CHIBI_BILLER_CHARGE_REQUEST_USER_QB"] && p == ENV["CHIBI_BILLER_CHARGE_REQUEST_PASSWORD_QB"] }
+    authenticate_or_request_with_http_basic {|u, p| u == ENV["CHARGE_REQUEST_RESULT_USER_QB"] && p == ENV["CHARGE_REQUEST_RESULT_PASSWORD_QB"] }
   end
 end

@@ -11,10 +11,6 @@ module ChargeRequestResult
       :reason => "REASON"
     }
 
-    def initialize(params)
-      self.params = params
-    end
-
     private
 
     def id
