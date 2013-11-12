@@ -18,6 +18,7 @@ bundle
 cp .env.production .env
 rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller
 cat /etc/init/chibi-biller-web-1.conf
+cat /etc/init/chibi-biller-worker-1.conf
 sudo restart chibi-biller
 ```
 
