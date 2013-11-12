@@ -16,10 +16,7 @@ module ChargeRequest
     end
 
     def request_params
-      {
-        PARAM_KEYS[:transaction_id] => transaction_id,
-        PARAM_KEYS[:mobile_number] => mobile_number
-      }
+      {:query => {PARAM_KEYS[:transaction_id] => transaction_id, PARAM_KEYS[:mobile_number] => mobile_number}}
     end
   end
 end

@@ -2,21 +2,30 @@ require 'spec_helper'
 
 module ChargeRequestResult
   describe Qb do
-    ASSERTED_ID_KEY = "TRANID"
-    ASSERTED_RESULT_KEY = "RESULT"
-    ASSERTED_REASON_KEY = "REASON"
+    include OperatorExamples
+    include ChargeRequestResultExamples
+
     ASSERTED_OPERATOR = "qb"
+    let(:asserted_operator) { ASSERTED_OPERATOR }
+    let(:initialization_args) { [] }
 
-    SAMPLE_ID = "1"
-
-    SAMPLE_RESULT_PARAMS = [
-      {:result => {:actual => "Successful.", :expected => "successful"}},
-      {:result => {:actual => "Failed.", :expected => "failed"}},
-      {:result => {:actual => "Error.", :expected => "errored"}}
-    ]
+    it_should_behave_like "an operator"
+    it_should_behave_like "a charge request result"
 
     describe "#save!" do
       include ResqueHelpers
+
+      ASSERTED_ID_KEY = "TRANID"
+      ASSERTED_RESULT_KEY = "RESULT"
+      ASSERTED_REASON_KEY = "REASON"
+
+      SAMPLE_ID = "1"
+
+      SAMPLE_RESULT_PARAMS = [
+        {:result => {:actual => "Successful.", :expected => "successful"}},
+        {:result => {:actual => "Failed.", :expected => "failed"}},
+        {:result => {:actual => "Error.", :expected => "errored"}}
+      ]
 
       def sample_result_params(sample_result)
         actual_result_params = {
@@ -45,7 +54,7 @@ module ChargeRequestResult
             assert_chibi_charge_request_updater_job(
               SAMPLE_ID,
               sample_result[:result][:expected],
-              ASSERTED_OPERATOR,
+              asserted_operator,
               (sample_result[:reason] || {})[:expected]
             )
           end

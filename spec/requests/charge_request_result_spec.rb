@@ -4,8 +4,8 @@ describe "Charge Request Result" do
   def authentication_params(options = {})
     {
       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(
-        options[:user] || ENV["CHIBI_BILLER_CHARGE_REQUEST_USER_QB"],
-        options[:password] || ENV["CHIBI_BILLER_CHARGE_REQUEST_PASSWORD_QB"]
+        options[:user] || ENV["CHARGE_REQUEST_RESULT_USER_QB"],
+        options[:password] || ENV["CHARGE_REQUEST_RESULT_PASSWORD_QB"]
       ),
       'REMOTE_ADDR' => options[:remote_ip] || ENV["ACL_WHITELIST"].split(";").first
     }
@@ -18,7 +18,7 @@ describe "Charge Request Result" do
     )
   end
 
-  describe "POST /charge_request_results" do
+  describe "POST '/charge_request_results'" do
     context "with incorrect authentication" do
       before do
         post_charge_request_results_path(:user => "wrong", :password => "bad")

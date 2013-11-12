@@ -21,10 +21,13 @@ module ResqueHelpers
     ResqueSpec.perform_all(queue_name)
   end
 
+  def chibi_charge_request_updater_job
+    @chibi_charge_request_updater_job ||= ResqueSpec.queues[ENV["CHIBI_CHARGE_REQUEST_UPDATER_QUEUE"]].first
+  end
+
   def assert_chibi_charge_request_updater_job(id, result, operator, reason = nil)
-    job = ResqueSpec.queues[ENV["CHIBI_CHARGE_REQUEST_UPDATER_QUEUE"]].first
-    job.should_not be_nil
-    job[:class].should == ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"]
-    job[:args].should == [id, result, operator, reason]
+    chibi_charge_request_updater_job.should_not be_nil
+    chibi_charge_request_updater_job[:class].should == ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"]
+    chibi_charge_request_updater_job[:args].should == [id, result, operator, reason]
   end
 end

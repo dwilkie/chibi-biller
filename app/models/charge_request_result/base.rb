@@ -1,8 +1,10 @@
 module ChargeRequestResult
   class Base
-    attr_accessor :params
+    include OperatorMethods
 
-    def initialize(params)
+    attr_accessor :params, :id, :result, :reason
+
+    def initialize(params = {})
       self.params = params
     end
 
@@ -10,8 +12,13 @@ module ChargeRequestResult
       Resque::Job.create(
         ENV["CHIBI_CHARGE_REQUEST_UPDATER_QUEUE"],
         ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"],
-        id, result, operator, reason
+        id, result, self.class.operator, reason
       )
+    end
+
+    def error(reason = nil)
+      self.result = "errored"
+      self.reason = reason
     end
   end
 end

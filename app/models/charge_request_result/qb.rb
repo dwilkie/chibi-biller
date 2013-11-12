@@ -11,13 +11,13 @@ module ChargeRequestResult
       :reason => "REASON"
     }
 
-    private
-
     def id
-      params[PARAM_KEYS[:id]]
+      super || params[PARAM_KEYS[:id]]
     end
 
     def result
+      result = super
+      return result if result
       if successful?
         "successful"
       elsif failed?
@@ -27,13 +27,11 @@ module ChargeRequestResult
       end
     end
 
-    def operator
-      self.class.name.demodulize.underscore
+    def reason
+      super || params[PARAM_KEYS[:reason]]
     end
 
-    def reason
-      params[PARAM_KEYS[:reason]]
-    end
+    private
 
     def successful?
       params[PARAM_KEYS[:result]] == RESULT_VALUES[:successful]

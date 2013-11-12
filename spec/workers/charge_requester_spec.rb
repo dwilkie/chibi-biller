@@ -4,7 +4,7 @@ describe ChargeRequester do
   let(:asserted_queue) { :charge_requester_queue }
   let(:transaction_id) { 1 }
   let(:mobile_number) { "85513123456" }
-  let(:operator) { "qb" }
+  let(:operator) { :qb }
 
   describe "@queue" do
     it "should == :charge_requester_queue" do
@@ -20,7 +20,7 @@ describe ChargeRequester do
       charge_request.stub(:save!)
     end
 
-    it "should do something" do
+    it "should try to build and save a new charge request for the operator" do
       ChargeRequest::Qb.should_receive(:new).with(transaction_id, mobile_number)
       charge_request.should_receive(:save!)
       subject.class.perform(transaction_id, operator, mobile_number)
@@ -31,14 +31,27 @@ describe ChargeRequester do
     # this is an integration test
 
     include ResqueHelpers
+    include WebMockHelpers
+    include ChargeRequestHelpers
 
     def enqueue_job
       Resque.enqueue(ChargeRequester, transaction_id, operator, mobile_number)
     end
 
+    def asserted_url
+      @asserted_url ||= super(
+        operator, :query => {
+          "MSISDN" => mobile_number,
+          "TRANID" => transaction_id
+        }
+      )
+    end
+
     it "should send the charge request" do
-      do_background_task { enqueue_job }
-      perform_background_job(asserted_queue)
+      do_background_task(:queue_only => true) { enqueue_job }
+      expect_charge_request(:operator => operator, :url => asserted_url) { perform_background_job(asserted_queue) }
+      last_request(:method).should == :get
+      last_request(:url).should == asserted_url
     end
   end
 end
