@@ -1,44 +1,35 @@
 module ChargeRequestResult
   class Qb < Base
-    RESULT_VALUES = {
-      :successful => "Successful.",
-      :failed => "Failed."
+    QB_SUCCESSFUL = "successful"
+    QB_TRANSACTION_ID_PARAM = "TRANID"
+    QB_RESULT_PARAM = "RESULT"
+    QB_RESULT_REASON_DELIMITER = "-"
+
+    QB_REASON_VALUES = {
+      "don't has enough credit"        => CHIBI_NOT_ENOUGH_CREDIT,
+      "already charge during last 24h" => CHIBI_ALREADY_CHARGED,
+      "msisdn is not activated"        => CHIBI_NUMBER_NOT_ACTIVATED,
+      "invalid msisdn"                 => CHIBI_INVALID_NUMBER
     }
-
-    PARAM_KEYS = {
-      :id => "TRANID",
-      :result => "RESULT",
-      :reason => "REASON"
-    }
-
-    def id
-      super || params[PARAM_KEYS[:id]]
-    end
-
-    def result
-      result = super
-      return result if result
-      if successful?
-        "successful"
-      elsif failed?
-        "failed"
-      else
-        "errored"
-      end
-    end
-
-    def reason
-      super || params[PARAM_KEYS[:reason]]
-    end
 
     private
 
-    def successful?
-      params[PARAM_KEYS[:result]] == RESULT_VALUES[:successful]
+    def parse_result
+      self.id = params[QB_TRANSACTION_ID_PARAM]
+      qb_full_result = sanitized(params[QB_RESULT_PARAM]).split(QB_RESULT_REASON_DELIMITER)
+      qb_result = sanitized(qb_full_result[0])
+      qb_reason = sanitized(qb_full_result[1])
+      if qb_result == QB_SUCCESSFUL
+        self.result = CHIBI_SUCCESSFUL
+      else
+        chibi_full_result = QB_REASON_VALUES[qb_reason] || []
+        self.result = chibi_full_result[0] || CHIBI_ERRORED
+        self.reason = chibi_full_result[1]
+      end
     end
 
-    def failed?
-      params[PARAM_KEYS[:result]] == RESULT_VALUES[:failed]
+    def sanitized(string)
+      string.to_s.strip.downcase.gsub(/\.$/, "")
     end
   end
 end
