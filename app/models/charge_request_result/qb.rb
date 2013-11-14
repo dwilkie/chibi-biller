@@ -6,10 +6,10 @@ module ChargeRequestResult
     QB_RESULT_REASON_DELIMITER = "-"
 
     QB_REASON_VALUES = {
-      "don't has enough credit"        => CHIBI_NOT_ENOUGH_CREDIT,
-      "already charge during last 24h" => CHIBI_ALREADY_CHARGED,
-      "msisdn is not activated"        => CHIBI_NUMBER_NOT_ACTIVATED,
-      "invalid msisdn"                 => CHIBI_INVALID_NUMBER
+      "do not has enough credit"        => CHIBI_NOT_ENOUGH_CREDIT,
+      "already charge during last 24h"  => CHIBI_ALREADY_CHARGED,
+      "msisdn is not activated"         => CHIBI_NUMBER_NOT_ACTIVATED,
+      "invalid msisdn"                  => CHIBI_INVALID_NUMBER
     }
 
     private

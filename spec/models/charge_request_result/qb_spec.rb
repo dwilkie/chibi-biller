@@ -38,7 +38,7 @@ module ChargeRequestResult
         },
         {
           :result => {
-            :actual => "Failed - Don't has enough credit.",
+            :actual => "Failed - Do not has enough credit.",
             :expected => "failed"
           },
           :reason => {
