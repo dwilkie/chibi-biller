@@ -8,15 +8,12 @@ If your environment variables have changed:
 
 ```shell
 cd chibi-biller
-cp .env .env.production
-git checkout .env
 git pull origin master
 bundle
 
 # compare .env.production and .env and make the neccessary changes to .env.production
 
-cp .env.production .env
-rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller
+rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller -e .env.production
 cat /etc/init/chibi-biller-web-1.conf
 cat /etc/init/chibi-biller-worker-1.conf
 sudo restart chibi-biller
