@@ -4,7 +4,7 @@ describe ChargeRequest::Beeline do
   include OperatorExamples
   include ChargeRequestExamples
 
-  let(:transaction_id) { "2" }
+  let(:transaction_id) { 2 }
   let(:mobile_number) { "85560201158" }
   let(:asserted_operator) { "beeline" }
   let(:initialization_args) { [transaction_id, mobile_number] }
@@ -25,7 +25,7 @@ describe ChargeRequest::Beeline do
       queue = ResqueSpec.queues[ENV["BEELINE_CHARGE_REQUEST_QUEUE"]].first
       queue.should_not be_nil
       queue[:class].should == ENV["BEELINE_CHARGE_REQUEST_WORKER"]
-      queue[:args].should == [transaction_id, mobile_number]
+      queue[:args].should == [transaction_id.to_s, mobile_number]
     end
   end
 end

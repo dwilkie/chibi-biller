@@ -1,5 +1,5 @@
 module ChargeRequestResult
-  class Qb < Base
+  class Qb < ::ChargeRequestResult::Base
     QB_SUCCESSFUL = "successful"
     QB_TRANSACTION_ID_PARAM = "TRANID"
     QB_RESULT_PARAM = "RESULT"
