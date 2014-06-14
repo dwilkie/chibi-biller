@@ -8,7 +8,7 @@ gem 'unicorn'
 gem 'httparty'
 
 group :development do
-  gem 'foreman', :git => 'git://github.com/ddollar/foreman.git'
+  gem 'foreman', :github => "ddollar/foreman"
 end
 
 group :test do
