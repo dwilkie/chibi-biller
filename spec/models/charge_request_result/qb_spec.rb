@@ -4,8 +4,9 @@ describe ChargeRequestResult::Qb do
   include OperatorExamples
   include ChargeRequestResultExamples
 
-  ASSERTED_OPERATOR = "qb"
-  let(:asserted_operator) { ASSERTED_OPERATOR }
+  QB_ASSERTED_OPERATOR = "qb"
+
+  let(:asserted_operator) { QB_ASSERTED_OPERATOR }
   let(:initialization_args) { [] }
 
   it_should_behave_like "an operator"
@@ -14,12 +15,12 @@ describe ChargeRequestResult::Qb do
   describe "#save!" do
     include ResqueHelpers
 
-    ASSERTED_TRANSACTION_ID_PARAM = "TRANID"
-    ASSERTED_RESULT_PARAM = "RESULT"
+    QB_ASSERTED_TRANSACTION_ID_PARAM = "TRANID"
+    QB_ASSERTED_RESULT_PARAM = "RESULT"
 
-    SAMPLE_ID = "1"
+    QB_SAMPLE_ID = "1"
 
-    SAMPLE_RESULT_PARAMS = [
+    QB_SAMPLE_RESULT_PARAMS = [
       {
         :result => {
           :actual => "Successful.",
@@ -71,11 +72,11 @@ describe ChargeRequestResult::Qb do
     ]
 
     def sample_result_params(sample_result)
-      { ASSERTED_TRANSACTION_ID_PARAM => SAMPLE_ID, ASSERTED_RESULT_PARAM => sample_result[:result][:actual] }
+      { QB_ASSERTED_TRANSACTION_ID_PARAM => QB_SAMPLE_ID, QB_ASSERTED_RESULT_PARAM => sample_result[:result][:actual] }
     end
 
-    SAMPLE_RESULT_PARAMS.each do |sample_result|
-      context_string = "{'#{ASSERTED_TRANSACTION_ID_PARAM}' => '#{SAMPLE_ID}', '#{ASSERTED_RESULT_PARAM}' => '#{sample_result[:result][:actual]}'}"
+    QB_SAMPLE_RESULT_PARAMS.each do |sample_result|
+      context_string = "{'#{QB_ASSERTED_TRANSACTION_ID_PARAM}' => '#{QB_SAMPLE_ID}', '#{QB_ASSERTED_RESULT_PARAM}' => '#{sample_result[:result][:actual]}'}"
       context "#params => #{context_string}" do
         subject { described_class.new(sample_result_params(sample_result)) }
 
@@ -85,9 +86,9 @@ describe ChargeRequestResult::Qb do
 
         expected_reason_string = sample_result[:reason] ? "'#{sample_result[:reason][:expected]}'" : "nil"
 
-        it "should queue a job for updating the charge request with args: '#{SAMPLE_ID}', '#{sample_result[:result][:expected]}', '#{ASSERTED_OPERATOR}', #{expected_reason_string}" do
+        it "should queue a job for updating the charge request with args: '#{QB_SAMPLE_ID}', '#{sample_result[:result][:expected]}', '#{QB_ASSERTED_OPERATOR}', #{expected_reason_string}" do
           assert_chibi_charge_request_updater_job(
-            SAMPLE_ID,
+            QB_SAMPLE_ID,
             sample_result[:result][:expected],
             asserted_operator,
             (sample_result[:reason] || {})[:expected]
