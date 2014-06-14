@@ -9,7 +9,7 @@ If your environment variables have changed:
 ```shell
 cd chibi-biller
 git pull origin master
-bundle install --without development test
+bundle install --without test
 
 # compare .env.production and .env and make the neccessary changes to .env.production
 

@@ -7,12 +7,12 @@ gem 'resque'
 gem 'unicorn'
 gem 'httparty'
 
-group :development, :test do
+group :development do
   gem 'foreman', :git => 'git://github.com/ddollar/foreman.git'
-  gem 'rspec-rails'
 end
 
 group :test do
+  gem 'rspec-rails'
   gem 'webmock'
   gem 'vcr'
   gem 'resque_spec'
