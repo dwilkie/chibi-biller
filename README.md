@@ -10,10 +10,11 @@ If your environment variables have changed:
 cd chibi-biller
 git pull origin master
 bundle install --without test
+```
 
 # compare .env.production and .env and make the neccessary changes to .env.production
 
-rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller -e .env.production
+rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller -e .env.production -t ~/.foreman/templates/upstartold
 cat /etc/init/chibi-biller-web-1.conf
 cat /etc/init/chibi-biller-charge_request_worker-1.conf
 cat /etc/init/chibi-biller-beeline_charge_request_updater_worker-1.conf
