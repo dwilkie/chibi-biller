@@ -35,6 +35,16 @@ bundle
 sudo restart chibi-biller
 ```
 
+### Deploying Chibi-Biller-Beeline
+
+This will create an upstart job for chibi-biller-beeline and start it
+
+```
+cd chibi-biller
+rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller-beeline -e ~/go/src/github.com/dwilkie/go-diameter-cca-client/.env.production -t ~/.foreman/templates/upstartold -f ~/go/src/github.com/dwilkie/go-diameter-cca-client/Procfile
+sudo restart chibi-biller-beeline
+```
+
 ### Troubleshooting
 
 1. Make sure the ownership and permissions are correct for the log files. `sudo chown -R ubuntu:ubuntu /var/log/chibi-biller`
