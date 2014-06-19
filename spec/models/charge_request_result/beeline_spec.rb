@@ -54,6 +54,19 @@ describe ChargeRequestResult::Beeline do
         :reason => {
           :expected => "not_enough_credit"
         }
+      },
+      {
+        :transaction_id => {
+          :actual => "UTF8String{1234},Padding:112",
+          :expected => "1234"
+        },
+        :result => {
+          :actual => "Unsigned32{5031}",
+          :expected => "errored"
+        },
+        :reason => {
+          :expected => "diameter_cca_client_error_5031"
+        }
       }
     ]
 
