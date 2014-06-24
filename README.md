@@ -49,6 +49,8 @@ sudo restart chibi-biller-beeline
 
 1. Make sure the ownership and permissions are correct for the log files. `sudo chown -R ubuntu:ubuntu /var/log/chibi-biller`
 
+2. Operators that post Charge Request Results to the Chibi-Biller server may need to post to the local IP address through the VPN. Since [this IP address can change on EC2](http://stackoverflow.com/questions/10733244/solution-for-local-ip-changes-of-aws-ec2-instances) we use a Virtual IP (174.129.212.2) to route the traffic, and use an IP Table rule to forward this to the actual local IP. When the local IP changes we need to update the IP Table Rule with `sudo iptables -t nat -A PREROUTING -d 174.129.212.2/32 -j NETMAP --to actual_local_ip/32`. You can then save this rule permanently with `sudo sh -c "iptables-save > /etc/iptables/rules.v4"`
+
 ### Testing
 
 After deployment you should be able to post to the server
