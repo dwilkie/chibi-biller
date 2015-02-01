@@ -26,8 +26,8 @@ module ResqueHelpers
   end
 
   def assert_chibi_charge_request_updater_job(id, result, operator, reason = nil)
-    chibi_charge_request_updater_job.should_not be_nil
-    chibi_charge_request_updater_job[:class].should == ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"]
-    chibi_charge_request_updater_job[:args].should == [id, result, operator, reason]
+    expect(chibi_charge_request_updater_job).not_to be_nil
+    expect(chibi_charge_request_updater_job[:class]).to eq(ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"])
+    expect(chibi_charge_request_updater_job[:args]).to eq([id, result, operator, reason])
   end
 end

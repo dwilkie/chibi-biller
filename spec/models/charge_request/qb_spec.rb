@@ -37,8 +37,8 @@ describe ChargeRequest::Qb do
 
     it "should send the charge request to qb" do
       expect_charge_request { subject.save! }
-      last_request(:url).should == asserted_url
-      last_request.method.should == :get
+      expect(last_request(:url)).to eq(asserted_url)
+      expect(last_request.method).to eq(:get)
     end
 
     context "qb responds with 200 OK" do
@@ -49,7 +49,7 @@ describe ChargeRequest::Qb do
       end
 
       it "should do nothing" do
-        chibi_charge_request_updater_job.should be_nil
+        expect(chibi_charge_request_updater_job).to be_nil
       end
     end
 

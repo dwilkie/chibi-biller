@@ -25,7 +25,7 @@ describe "Charge Request Result" do
       end
 
       it "should prevent access" do
-        response.code.should == "401"
+        expect(response.code).to eq("401")
       end
     end
 
@@ -43,7 +43,7 @@ describe "Charge Request Result" do
         end
 
         it "should queue a job for updating the charge request" do
-          response.code.should == "201"
+          expect(response.code).to eq("201")
           assert_chibi_charge_request_updater_job("1", "successful", "qb", nil)
         end
       end
@@ -56,7 +56,7 @@ describe "Charge Request Result" do
         end
 
         it "should deny me access" do
-          response.should be_nil
+          expect(response).to be_nil
         end
       end
     end

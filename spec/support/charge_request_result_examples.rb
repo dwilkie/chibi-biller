@@ -3,8 +3,8 @@ module ChargeRequestResultExamples
     describe "#error(reason)" do
       it "should update #result and #reason" do
         subject.error("reason")
-        subject.result.should == "errored"
-        subject.reason.should == "reason"
+        expect(subject.result).to eq("errored")
+        expect(subject.reason).to eq("reason")
       end
     end
 
@@ -12,7 +12,7 @@ module ChargeRequestResultExamples
       describe "##{accessor}" do
         it "should be an accessor" do
           subject.send("#{accessor}=", accessor)
-          subject.send(accessor).should == accessor
+          expect(subject.send(accessor)).to eq(accessor)
         end
       end
     end

@@ -4,7 +4,7 @@ module ChargeRequestExamples
       describe "##{accessor}" do
         it "should be an accessor" do
           subject.send("#{accessor}=", accessor)
-          subject.send(accessor).should == accessor
+          expect(subject.send(accessor)).to eq(accessor)
         end
       end
     end

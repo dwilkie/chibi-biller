@@ -23,9 +23,9 @@ describe ChargeRequest::Beeline do
 
     it "should schedule a job to send the charge request to Beeline" do
       queue = ResqueSpec.queues[ENV["BEELINE_CHARGE_REQUEST_QUEUE"]].first
-      queue.should_not be_nil
-      queue[:class].should == ENV["BEELINE_CHARGE_REQUEST_WORKER"]
-      queue[:args].should == [transaction_id.to_s, mobile_number]
+      expect(queue).not_to be_nil
+      expect(queue[:class]).to eq(ENV["BEELINE_CHARGE_REQUEST_WORKER"])
+      expect(queue[:args]).to eq([transaction_id.to_s, mobile_number])
     end
   end
 end
