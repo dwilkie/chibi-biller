@@ -2,8 +2,8 @@ module ChargeRequest
   class Beeline < ::ChargeRequest::Base
     def save!
       Resque::Job.create(
-        ENV["BEELINE_CHARGE_REQUEST_QUEUE"],
-        ENV["BEELINE_CHARGE_REQUEST_WORKER"],
+        Rails.application.secrets[:beeline_charge_request_queue],
+        Rails.application.secrets[:beeline_charge_request_worker],
         transaction_id.to_s, mobile_number
       )
     end

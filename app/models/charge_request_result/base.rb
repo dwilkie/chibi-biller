@@ -20,8 +20,8 @@ module ChargeRequestResult
 
     def save!
       Resque::Job.create(
-        ENV["CHIBI_CHARGE_REQUEST_UPDATER_QUEUE"],
-        ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"],
+        Rails.application.secrets[:chibi_charge_request_updater_queue],
+        Rails.application.secrets[:chibi_charge_request_updater_worker],
         id, result, self.class.operator, reason
       )
     end

@@ -4,10 +4,10 @@ describe "Charge Request Result" do
   def authentication_params(options = {})
     {
       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(
-        options[:user] || ENV["CHARGE_REQUEST_RESULT_USER_QB"],
-        options[:password] || ENV["CHARGE_REQUEST_RESULT_PASSWORD_QB"]
+        options[:user] || Rails.application.secrets[:charge_request_result_user_qb],
+        options[:password] || Rails.application.secrets[:charge_request_result_password_qb]
       ),
-      'REMOTE_ADDR' => options[:remote_ip] || ENV["ACL_WHITELIST"].split(";").first
+      'REMOTE_ADDR' => options[:remote_ip] || Rails.application.secrets[:acl_whitelist].split(";").first
     }
   end
 

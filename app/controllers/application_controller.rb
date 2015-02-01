@@ -8,6 +8,8 @@ class ApplicationController < ActionController::Base
   private
 
   def authorize
-    authenticate_or_request_with_http_basic {|u, p| u == ENV["CHARGE_REQUEST_RESULT_USER_QB"] && p == ENV["CHARGE_REQUEST_RESULT_PASSWORD_QB"] }
+    authenticate_or_request_with_http_basic do |u, p|
+      u == Rails.application.secrets[:charge_request_result_user_qb] && p == Rails.application.secrets[:charge_request_result_password_qb]
+    end
   end
 end

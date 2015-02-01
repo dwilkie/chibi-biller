@@ -22,7 +22,7 @@ module ChargeRequest
     end
 
     def request_url
-      ENV["CHARGE_REQUEST_URL_QB"]
+      Rails.application.secrets[:charge_request_url_qb]
     end
 
     def request_params

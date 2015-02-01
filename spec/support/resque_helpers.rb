@@ -1,5 +1,5 @@
 module ResqueHelpers
-  EXTERNAL_QUEUES = [ENV["CHIBI_CHARGE_REQUEST_UPDATER_QUEUE"]]
+  EXTERNAL_QUEUES = [Rails.application.secrets[:chibi_charge_request_updater_queue]]
 
   private
 
@@ -22,12 +22,12 @@ module ResqueHelpers
   end
 
   def chibi_charge_request_updater_job
-    @chibi_charge_request_updater_job ||= ResqueSpec.queues[ENV["CHIBI_CHARGE_REQUEST_UPDATER_QUEUE"]].first
+    @chibi_charge_request_updater_job ||= ResqueSpec.queues[Rails.application.secrets[:chibi_charge_request_updater_queue]].first
   end
 
   def assert_chibi_charge_request_updater_job(id, result, operator, reason = nil)
     expect(chibi_charge_request_updater_job).not_to be_nil
-    expect(chibi_charge_request_updater_job[:class]).to eq(ENV["CHIBI_CHARGE_REQUEST_UPDATER_WORKER"])
+    expect(chibi_charge_request_updater_job[:class]).to eq(Rails.application.secrets[:chibi_charge_request_updater_worker])
     expect(chibi_charge_request_updater_job[:args]).to eq([id, result, operator, reason])
   end
 end
