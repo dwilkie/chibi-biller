@@ -3,6 +3,7 @@ require 'rails_helper'
 describe ChargeRequestResult::Beeline do
   include OperatorExamples
   include ChargeRequestResultExamples
+  include ActiveJobHelpers
 
   BEELINE_ASSERTED_OPERATOR = "beeline"
 
@@ -13,8 +14,6 @@ describe ChargeRequestResult::Beeline do
   it_should_behave_like "a charge request result"
 
   describe "#save!" do
-    include ResqueHelpers
-
     BEELINE_ASSERTED_TRANSACTION_ID_PARAM = :session_id
     BEELINE_ASSERTED_RESULT_PARAM = :result_code
 
@@ -80,7 +79,7 @@ describe ChargeRequestResult::Beeline do
         subject { described_class.new(sample_result_params(sample_result)) }
 
         before do
-          do_background_task(:queue_only => true) { subject.save! }
+          trigger_job(:queue_only => true) { subject.save! }
         end
 
         expected_reason_string = sample_result[:reason] ? "'#{sample_result[:reason][:expected]}'" : "nil"

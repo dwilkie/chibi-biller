@@ -3,6 +3,7 @@ require 'rails_helper'
 describe ChargeRequest::Beeline do
   include OperatorExamples
   include ChargeRequestExamples
+  include ActiveJobHelpers
 
   let(:transaction_id) { 2 }
   let(:mobile_number) { "85560201158" }
@@ -15,17 +16,14 @@ describe ChargeRequest::Beeline do
   it_should_behave_like "a charge request"
 
   describe "#save!" do
-    include ResqueHelpers
-
     before do
-      subject.save!
+      trigger_job(:queue_only => true) { subject.save! }
     end
 
     it "should schedule a job to send the charge request to Beeline" do
-      queue = ResqueSpec.queues[Rails.application.secrets[:beeline_charge_request_queue]].first
-      expect(queue).not_to be_nil
-      expect(queue[:class]).to eq(Rails.application.secrets[:beeline_charge_request_worker])
-      expect(queue[:args]).to eq([transaction_id.to_s, mobile_number])
+      job = enqueued_jobs.first
+      expect(job).not_to be_nil
+      expect(job[:args]).to eq([transaction_id.to_s, mobile_number])
     end
   end
 end

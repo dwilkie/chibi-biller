@@ -1,6 +1,8 @@
 require 'rails_helper'
 
 describe "Charge Request Result" do
+  include ActiveJobHelpers
+
   def authentication_params(options = {})
     {
       'HTTP_AUTHORIZATION' => ActionController::HttpAuthentication::Basic.encode_credentials(
@@ -31,10 +33,8 @@ describe "Charge Request Result" do
 
     context "with correct authentication" do
       context "and an allowed ip" do
-        include ResqueHelpers
-
         before do
-          do_background_task(:queue_only => true) do
+          trigger_job(:queue_only => true) do
             post_charge_request_results_path(
               "TRANID" => "1",
               "RESULT" => "Successful."

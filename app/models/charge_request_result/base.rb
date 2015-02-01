@@ -19,11 +19,7 @@ module ChargeRequestResult
     end
 
     def save!
-      Resque::Job.create(
-        Rails.application.secrets[:chibi_charge_request_updater_queue],
-        Rails.application.secrets[:chibi_charge_request_updater_worker],
-        id, result, self.class.operator, reason
-      )
+      ChargeRequestUpdaterJob.perform_later(id, result, self.class.operator, reason)
     end
 
     def error(reason = nil)

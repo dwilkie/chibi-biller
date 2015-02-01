@@ -15,9 +15,9 @@ describe ChargeRequest::Qb do
   it_should_behave_like "a charge request"
 
   describe "#save!" do
-    include ResqueHelpers
     include WebMockHelpers
     include ChargeRequestHelpers
+    include ActiveJobHelpers
 
     ASSERTED_TRANSACTION_ID_KEY = "TRANID"
     ASSERTED_MOBILE_NUMBER_KEY = "MSISDN"
@@ -43,9 +43,7 @@ describe ChargeRequest::Qb do
 
     context "qb responds with 200 OK" do
       before do
-        do_background_task(:queue_only => true) do
-          expect_charge_request { subject.save! }
-        end
+        expect_charge_request { subject.save! }
       end
 
       it "should do nothing" do
@@ -55,7 +53,7 @@ describe ChargeRequest::Qb do
 
     context "qb responds with 500 Internal Server Error" do
       before do
-        do_background_task(:queue_only => true) do
+        trigger_job(:queue_only => true) do
           expect_charge_request(:response_type => :internal_server_error) { subject.save! }
         end
       end

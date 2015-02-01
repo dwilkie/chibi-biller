@@ -3,6 +3,7 @@ require 'rails_helper'
 describe ChargeRequestResult::Qb do
   include OperatorExamples
   include ChargeRequestResultExamples
+  include ActiveJobHelpers
 
   QB_ASSERTED_OPERATOR = "qb"
 
@@ -13,8 +14,6 @@ describe ChargeRequestResult::Qb do
   it_should_behave_like "a charge request result"
 
   describe "#save!" do
-    include ResqueHelpers
-
     QB_ASSERTED_TRANSACTION_ID_PARAM = "TRANID"
     QB_ASSERTED_RESULT_PARAM = "RESULT"
 
@@ -81,7 +80,7 @@ describe ChargeRequestResult::Qb do
         subject { described_class.new(sample_result_params(sample_result)) }
 
         before do
-          do_background_task(:queue_only => true) { subject.save! }
+          trigger_job(:queue_only => true) { subject.save! }
         end
 
         expected_reason_string = sample_result[:reason] ? "'#{sample_result[:reason][:expected]}'" : "nil"
