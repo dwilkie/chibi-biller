@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 
 describe ChargeRequester do
   let(:asserted_queue) { :charge_requester_queue }

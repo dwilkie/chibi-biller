@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 
 describe "Charge Request Result" do
   def authentication_params(options = {})
