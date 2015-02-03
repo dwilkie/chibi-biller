@@ -1,0 +1,54 @@
+# config valid only for current version of Capistrano
+lock '3.3.5'
+
+set :application, 'chibi_biller'
+set :repo_url, 'git@github.com:dwilkie/chibi-biller.git'
+
+# Default branch is :master
+# ask :branch, proc { `git rev-parse --abbrev-ref HEAD`.chomp }.call
+
+# Default deploy_to directory is /var/www/my_app_name
+# set :deploy_to, '/var/www/my_app_name'
+set :deploy_to, '/home/deploy/chibi-biller'
+
+# Default value for :scm is :git
+# set :scm, :git
+
+# Default value for :format is :pretty
+# set :format, :pretty
+
+# Default value for :log_level is :debug
+# set :log_level, :debug
+
+# Default value for :pty is false
+# set :pty, true
+
+# Default value for :linked_files is []
+# set :linked_files, fetch(:linked_files, []).push('config/database.yml')
+set :linked_files, %w{.rbenv-vars}
+
+# Default value for linked_dirs is []
+# set :linked_dirs, fetch(:linked_dirs, []).push('bin', 'log', 'tmp/pids', 'tmp/cache', 'tmp/sockets', 'vendor/bundle', 'public/system')
+
+# Default value for default_env is {}
+# set :default_env, { path: "/opt/ruby/bin:$PATH" }
+
+# Default value for keep_releases is 5
+# set :keep_releases, 5
+
+set :foreman_use_sudo, :rbenv
+set :foreman_options, {:user => :deploy, :env => "#{shared_path}/.env"}
+set :foreman_export_path, '/etc/init'
+
+namespace :deploy do
+  after :publishing, :write_path_to_env do
+    on roles(:all) do
+      within shared_path do
+        execute(:echo, "PATH=$HOME/.rbenv/shims:$PATH > .env")
+      end
+    end
+  end
+
+  after :publishing, "foreman:export"
+  after :publishing, "foreman:restart"
+end

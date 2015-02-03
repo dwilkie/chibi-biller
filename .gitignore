@@ -18,3 +18,4 @@ vendor/ruby
 
 .env.production
 remove_focus.rb
+.capistrano
