@@ -1,38 +1,17 @@
 # chibi-biller
 
+[ ![Codeship Status for dwilkie/chibi-biller](https://codeship.com/projects/da074f20-8dc7-0132-1412-669677a474c3/status?branch=master)](https://codeship.com/projects/60770)
+
 ChibiBiller is the API used to interface into Telco billing APIs
 
 ## Deployment
 
-### Upstart
+### CI
 
-Older versions of upstart (< 1.4) do not support `setuid` so we need to use a custom [foreman template](https://github.com/dwilkie/foreman-export-templates) for the export.
+Chibi Biller is set up for CI. To deploy:
 
-### Foreman
-
-If your environment variables have changed:
-
-```shell
-cd chibi-biller
-git pull origin master
-bundle install --without test
-
-# compare .env.production and .env and make the neccessary changes to .env.production
-
-rvmsudo bundle exec foreman export upstart /etc/init -u ubuntu -a chibi-biller -e .env.production -t ~/.foreman/templates/upstartold
-cat /etc/init/chibi-biller-web-1.conf
-cat /etc/init/chibi-biller-charge_request_worker-1.conf
-cat /etc/init/chibi-biller-beeline_charge_request_updater_worker-1.conf
-sudo restart chibi-biller
 ```
-
-If your environment variables have not changed:
-
-```shell
-cd chibi-biller
-git pull origin master
-bundle
-sudo restart chibi-biller
+git push origin master
 ```
 
 ### Deploying Chibi-Biller-Beeline
