@@ -26,4 +26,11 @@ describe BeelineChargeRequestUpdaterJob do
       subject.perform(session_id, result_code)
     end
   end
+
+  describe "#jid" do
+    it "should be an accessor" do
+      subject.jid = "jid"
+      expect(subject.jid).to eq("jid")
+    end
+  end
 end
