@@ -1,7 +1,6 @@
 require 'rails_helper'
 
 describe BeelineChargeRequestUpdaterJob do
-  # this job will be queued by another app, therefore only perform method is important
   let(:session_id) { "1234" }
   let(:result_code) { "some-code" }
 
@@ -11,6 +10,10 @@ describe BeelineChargeRequestUpdaterJob do
 
   it "should be serializeable" do
     expect(subject.serialize["arguments"].first).to eq(options)
+  end
+
+  describe "#queue_name" do
+    it { expect(subject.queue_name).to eq("beeline_charge_request_updater_queue") }
   end
 
   describe "#perform(session_id, result_code)" do

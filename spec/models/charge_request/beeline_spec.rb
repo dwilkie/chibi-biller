@@ -23,7 +23,14 @@ describe ChargeRequest::Beeline do
     it "should schedule a job to send the charge request to Beeline" do
       job = enqueued_jobs.first
       expect(job).not_to be_nil
-      expect(job[:args]).to eq([transaction_id.to_s, mobile_number])
+      expect(job[:args]).to eq(
+        [
+          transaction_id.to_s,
+          mobile_number,
+          BeelineChargeRequestUpdaterJob.queue_name,
+          BeelineChargeRequestUpdaterJob.to_s
+        ]
+      )
     end
   end
 end
