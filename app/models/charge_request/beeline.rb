@@ -4,7 +4,8 @@ class ChargeRequest::Beeline  < ::ChargeRequest::Base
       transaction_id.to_s,
       mobile_number,
       BeelineChargeRequestUpdaterJob.queue_name,
-      BeelineChargeRequestUpdaterJob.to_s
+      BeelineChargeRequestUpdaterJob.to_s,
+      Rails.application.secrets[:beeline_billing_server_address]
     )
   end
 end
