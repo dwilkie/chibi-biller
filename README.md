@@ -6,9 +6,13 @@ ChibiBiller is the API used to interface into Telco billing APIs
 
 ## Deployment
 
+### One Time Server Config
+
+
+
 ### Build go_worker
 
-The `go_worker` binary is under [source control](https://github.com/dwilkie/chibi-biller/tree/master/go_worker). Run `go build` from the working directory on the development machine to compile the latest.
+The `go_worker` binary is under [source control](https://github.com/dwilkie/chibi-biller/tree/master/go_worker). Run `GOBIN=. go get` from the working directory on your development machine to compile the latest.
 ``
 
 ### CI

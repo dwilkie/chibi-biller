@@ -13,33 +13,33 @@ import (
   "net"
 
   "github.com/fiorix/go-diameter/diam"
-  "github.com/fiorix/go-diameter/diam/diamtype"
-  "github.com/fiorix/go-diameter/diam/diamdict"
+//  "github.com/fiorix/go-diameter/diam/avp"
+  "github.com/fiorix/go-diameter/diam/avp/format"
+  "github.com/fiorix/go-diameter/diam/dict"
 )
 
 const (
-  Identity    = diamtype.DiameterIdentity("teletech1.client.com")
-  Realm       = diamtype.DiameterIdentity("teletech.com")
-  DestinationRealm = diamtype.DiameterIdentity("comverse.com")
-  VendorId    = diamtype.Unsigned32(0)
-  ProductName = diamtype.UTF8String("Chibi")
-  AuthApplicationId = diamtype.Unsigned32(4)
-  ServiceContextId = diamtype.UTF8String("CMVT-SVC@comverse.com")
-  CCRequestType = diamtype.Enumerated(0x04)
-  CCRequestNumber = diamtype.Unsigned32(0)
-  RequestedAction = diamtype.Enumerated(0x00)
-  SubscriptionIdType = diamtype.Enumerated(0x00) // E164
-  ServiceIdentifier = diamtype.Unsigned32(0)
-  ServiceParameterType1 = diamtype.Unsigned32(1)
-  ServiceParameterValue1 = diamtype.OctetString("401")
-  ServiceParameterType2 = diamtype.Unsigned32(2)
-  ServiceParameterValue2 = diamtype.OctetString("401")
+  Identity    = format.DiameterIdentity("teletech1.client.com")
+  Realm       = format.DiameterIdentity("teletech.com")
+  DestinationRealm = format.DiameterIdentity("comverse.com")
+  VendorId    = format.Unsigned32(0)
+  ProductName = format.UTF8String("Chibi")
+  AuthApplicationId = format.Unsigned32(4)
+  ServiceContextId = format.UTF8String("CMVT-SVC@comverse.com")
+  CCRequestType = format.Enumerated(0x04)
+  CCRequestNumber = format.Unsigned32(0)
+  RequestedAction = format.Enumerated(0x00)
+  SubscriptionIdType = format.Enumerated(0x00) // E164
+  ServiceIdentifier = format.Unsigned32(0)
+  ServiceParameterType1 = format.Unsigned32(1)
+  ServiceParameterValue1 = format.OctetString("401")
+  ServiceParameterType2 = format.Unsigned32(2)
+  ServiceParameterValue2 = format.OctetString("401")
 )
 
 func Charge(transaction_id string, msisdn string, server_address string) (session_id string, result_code string) {
-  parser, _ := diamdict.NewParser()
-  parser.Load(bytes.NewReader(diamdict.DefaultXML))
-  parser.Load(bytes.NewReader(diamdict.CreditControlXML))
+  parser, _ := dict.NewParser()
+  parser.Load(bytes.NewReader(dict.CreditControlXML))
   // CCA incoming messages are handled here.
 
   diam.HandleFunc("CCA", func(c diam.Conn, m *diam.Message) {
@@ -76,20 +76,20 @@ func Charge(transaction_id string, msisdn string, server_address string) (sessio
 
 // NewClient sends a CER to the server and then a DWR every 10 seconds.
 func NewClient(c diam.Conn, transaction_id string, msisdn string) {
-  parser, _ := diamdict.NewParser()
-//  parser.Load(bytes.NewReader(diamdict.DefaultXML))
-  parser.Load(bytes.NewReader(diamdict.CreditControlXML))
+  parser, _ := dict.NewParser()
+//  parser.Load(bytes.NewReader(dict.DefaultXML))
+  parser.Load(bytes.NewReader(dict.CreditControlXML))
 
   // Build CER
   m := diam.NewRequest(257, 0, parser)
   // Add AVPs
   m.NewAVP("Origin-Host", 0x40, 0x00, Identity)
   m.NewAVP("Origin-Realm", 0x40, 0x00, Realm)
-  m.NewAVP("Origin-State-Id", 0x40, 0x00, diamtype.Unsigned32(rand.Uint32()))
+  m.NewAVP("Origin-State-Id", 0x40, 0x00, format.Unsigned32(rand.Uint32()))
   m.NewAVP("Auth-Application-Id", 0x40, 0x00, AuthApplicationId)
   laddr := c.LocalAddr()
   ip, _, _ := net.SplitHostPort(laddr.String())
-  m.NewAVP("Host-IP-Address", 0x40, 0x0, diamtype.Address(net.ParseIP(ip)))
+  m.NewAVP("Host-IP-Address", 0x40, 0x0, format.Address(net.ParseIP(ip)))
   m.NewAVP("Vendor-Id", 0x40, 0x0, VendorId)
   m.NewAVP("Product-Name", 0x00, 0x0, ProductName)
 
@@ -101,7 +101,7 @@ func NewClient(c diam.Conn, transaction_id string, msisdn string) {
   // Build CCR
   m = diam.NewRequest(272, 4, parser)
   // Add AVPs
-  m.NewAVP("Session-Id", 0x40, 0x00, diamtype.UTF8String(transaction_id))
+  m.NewAVP("Session-Id", 0x40, 0x00, format.UTF8String(transaction_id))
   m.NewAVP("Origin-Host", 0x40, 0x00, Identity)
   m.NewAVP("Origin-Realm", 0x40, 0x00, Realm)
   m.NewAVP("Destination-Realm", 0x40, 0x00, DestinationRealm)
@@ -111,15 +111,15 @@ func NewClient(c diam.Conn, transaction_id string, msisdn string) {
   m.NewAVP("Service-Identifier", 0x40, 0x0, ServiceIdentifier)
   m.NewAVP("CC-Request-Number", 0x40, 0x0, CCRequestNumber)
   m.NewAVP("Requested-Action", 0x40, 0x0, RequestedAction)
-  m.NewAVP("Subscription-Id", 0x40, 0x00, &diam.Grouped{
+  m.NewAVP("Subscription-Id", 0x40, 0x00, &diam.GroupedAVP{
     AVP: []*diam.AVP{
       // Subscription-Id-Type
       diam.NewAVP(450, 0x40, 0x0, SubscriptionIdType),
       // Subscription-Id-Data
-      diam.NewAVP(444, 0x40, 0x0, diamtype.UTF8String(msisdn)),
+      diam.NewAVP(444, 0x40, 0x0, format.UTF8String(msisdn)),
     },
   })
-  m.NewAVP("Service-Parameter-Info", 0x40, 0x00, &diam.Grouped{
+  m.NewAVP("Service-Parameter-Info", 0x40, 0x00, &diam.GroupedAVP{
     AVP: []*diam.AVP{
       // Service-Parameter-Type
       diam.NewAVP(441, 0x40, 0x0, ServiceParameterType1),
@@ -127,7 +127,7 @@ func NewClient(c diam.Conn, transaction_id string, msisdn string) {
       diam.NewAVP(442, 0x40, 0x0, ServiceParameterValue1),
     },
   })
-  m.NewAVP("Service-Parameter-Info", 0x40, 0x00, &diam.Grouped{
+  m.NewAVP("Service-Parameter-Info", 0x40, 0x00, &diam.GroupedAVP{
     AVP: []*diam.AVP{
       // Service-Parameter-Type
       diam.NewAVP(441, 0x40, 0x0, ServiceParameterType2),
