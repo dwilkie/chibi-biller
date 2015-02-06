@@ -170,7 +170,8 @@ func OnCEA(c diam.Conn, m *diam.Message) {
     log.Fatal(err)
   }
   if v, _ := rc.Data.(format.Unsigned32); v != diam.Success {
-    log.Fatal("Unexpected response:", rc)
+    // Panic here
+    log.Printf("This will raise an Airbrake exception in the future. Unexpected response: ", rc)
   }
 }
 
