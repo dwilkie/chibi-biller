@@ -11,9 +11,9 @@ import (
   "bytes"
   "math/rand"
   "net"
-
+  "time"
   "github.com/fiorix/go-diameter/diam"
-//  "github.com/fiorix/go-diameter/diam/avp"
+  "github.com/fiorix/go-diameter/diam/avp"
   "github.com/fiorix/go-diameter/diam/avp/format"
   "github.com/fiorix/go-diameter/diam/dict"
 )
@@ -38,106 +38,144 @@ const (
 )
 
 func Charge(transaction_id string, msisdn string, server_address string) (session_id string, result_code string) {
-  parser, _ := dict.NewParser()
-  parser.Load(bytes.NewReader(dict.CreditControlXML))
-  // CCA incoming messages are handled here.
+
+  dict.Default.Load(bytes.NewReader(dict.CreditControlXML))
+
+  // ALL incoming messages are handled here.
 
   diam.HandleFunc("CCA", func(c diam.Conn, m *diam.Message) {
-    session_id_avp, err := m.FindAVP(263)
+    session_id_avp, err := m.FindAVP(avp.SessionId)
     if err != nil {
       log.Fatal(err)
     } else {
       session_id = session_id_avp.Data.String()
     }
 
-    result_code_avp, err := m.FindAVP(268)
+    result_code_avp, err := m.FindAVP(avp.ResultCode)
     if err != nil {
       log.Fatal(err)
     } else {
       result_code = result_code_avp.Data.String()
     }
-
-    c.Close()
   })
-  // Connect using the default handler and base.Dict.
+
+  diam.HandleFunc("CEA", OnCEA)
+  diam.HandleFunc("ALL", OnMSG) // Catch-all.
+
   var (
     c   diam.Conn
     err error
   )
-  c, err = diam.Dial(server_address, nil, parser)
+  c, err = diam.Dial(server_address, nil, nil)
+
   if err != nil {
     log.Fatal(err)
   }
+
   go NewClient(c, transaction_id, msisdn)
-  // Wait until the server kick us out.
+
+  // Wait until the server kicks us out.
+
   <-c.(diam.CloseNotifier).CloseNotify()
+  log.Println("Server disconnected.")
+
   return session_id, result_code
 }
 
 // NewClient sends a CER to the server and then a DWR every 10 seconds.
 func NewClient(c diam.Conn, transaction_id string, msisdn string) {
-  parser, _ := dict.NewParser()
-//  parser.Load(bytes.NewReader(dict.DefaultXML))
-  parser.Load(bytes.NewReader(dict.CreditControlXML))
-
   // Build CER
-  m := diam.NewRequest(257, 0, parser)
+  m := diam.NewRequest(diam.CapabilitiesExchange, 0, nil)
   // Add AVPs
-  m.NewAVP("Origin-Host", 0x40, 0x00, Identity)
-  m.NewAVP("Origin-Realm", 0x40, 0x00, Realm)
-  m.NewAVP("Origin-State-Id", 0x40, 0x00, format.Unsigned32(rand.Uint32()))
-  m.NewAVP("Auth-Application-Id", 0x40, 0x00, AuthApplicationId)
+  m.NewAVP(avp.OriginHost, avp.Mbit, 0, Identity)
+  m.NewAVP(avp.OriginRealm, avp.Mbit, 0, Realm)
+  m.NewAVP(avp.OriginStateId, avp.Mbit, 0, format.Unsigned32(rand.Uint32()))
+  m.NewAVP(avp.AuthApplicationId, avp.Mbit, 0, AuthApplicationId)
+
   laddr := c.LocalAddr()
   ip, _, _ := net.SplitHostPort(laddr.String())
-  m.NewAVP("Host-IP-Address", 0x40, 0x0, format.Address(net.ParseIP(ip)))
-  m.NewAVP("Vendor-Id", 0x40, 0x0, VendorId)
-  m.NewAVP("Product-Name", 0x00, 0x0, ProductName)
+  m.NewAVP(avp.HostIPAddress, avp.Mbit, 0, format.Address(net.ParseIP(ip)))
+  m.NewAVP(avp.VendorId, avp.Mbit, 0, VendorId)
+  m.NewAVP(avp.ProductName, avp.Mbit, 0, ProductName)
+
+  log.Printf("Sending message to %s", c.RemoteAddr().String())
+  log.Println(m)
 
   // Send message to the connection
   if _, err := m.WriteTo(c); err != nil {
     log.Fatal("Write failed:", err)
   }
 
-  // Build CCR
-  m = diam.NewRequest(272, 4, parser)
-  // Add AVPs
-  m.NewAVP("Session-Id", 0x40, 0x00, format.UTF8String(transaction_id))
-  m.NewAVP("Origin-Host", 0x40, 0x00, Identity)
-  m.NewAVP("Origin-Realm", 0x40, 0x00, Realm)
-  m.NewAVP("Destination-Realm", 0x40, 0x00, DestinationRealm)
-  m.NewAVP("Auth-Application-Id", 0x40, 0x0, AuthApplicationId)
-  m.NewAVP("CC-Request-Type", 0x40, 0x0, CCRequestType)
-  m.NewAVP("Service-Context-Id", 0x40, 0x0, ServiceContextId)
-  m.NewAVP("Service-Identifier", 0x40, 0x0, ServiceIdentifier)
-  m.NewAVP("CC-Request-Number", 0x40, 0x0, CCRequestNumber)
-  m.NewAVP("Requested-Action", 0x40, 0x0, RequestedAction)
-  m.NewAVP("Subscription-Id", 0x40, 0x00, &diam.GroupedAVP{
+  // Craft a CCR message.
+  r := diam.NewRequest(diam.CreditControl, 4, nil)
+  r.NewAVP(avp.SessionId, avp.Mbit, 0, format.UTF8String(transaction_id))
+  r.NewAVP(avp.OriginHost, avp.Mbit, 0, Identity)
+  r.NewAVP(avp.OriginRealm, avp.Mbit, 0, Realm)
+  r.NewAVP(avp.DestinationRealm, avp.Mbit, 0, DestinationRealm)
+  r.NewAVP(avp.AuthApplicationId, avp.Mbit, 0, AuthApplicationId)
+  r.NewAVP(avp.CCRequestType, avp.Mbit, 0, CCRequestType)
+  r.NewAVP(avp.ServiceContextId, avp.Mbit, 0, ServiceContextId)
+  r.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, ServiceIdentifier)
+  r.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, CCRequestNumber)
+  r.NewAVP(avp.RequestedAction, avp.Mbit, 0, RequestedAction)
+
+  r.NewAVP(avp.SubscriptionId, avp.Mbit, 0, &diam.GroupedAVP{
     AVP: []*diam.AVP{
-      // Subscription-Id-Type
-      diam.NewAVP(450, 0x40, 0x0, SubscriptionIdType),
-      // Subscription-Id-Data
-      diam.NewAVP(444, 0x40, 0x0, format.UTF8String(msisdn)),
-    },
-  })
-  m.NewAVP("Service-Parameter-Info", 0x40, 0x00, &diam.GroupedAVP{
-    AVP: []*diam.AVP{
-      // Service-Parameter-Type
-      diam.NewAVP(441, 0x40, 0x0, ServiceParameterType1),
-      // Service-Parameter-Value
-      diam.NewAVP(442, 0x40, 0x0, ServiceParameterValue1),
-    },
-  })
-  m.NewAVP("Service-Parameter-Info", 0x40, 0x00, &diam.GroupedAVP{
-    AVP: []*diam.AVP{
-      // Service-Parameter-Type
-      diam.NewAVP(441, 0x40, 0x0, ServiceParameterType2),
-      // Service-Parameter-Value
-      diam.NewAVP(442, 0x40, 0x0, ServiceParameterValue2),
+      diam.NewAVP(avp.SubscriptionIdType, avp.Mbit, 0, SubscriptionIdType),
+      diam.NewAVP(avp.SubscriptionIdData, avp.Mbit, 0, format.UTF8String(msisdn)),
     },
   })
 
+  r.NewAVP(avp.ServiceParameterInfo, avp.Mbit, 0, &diam.GroupedAVP{
+    AVP: []*diam.AVP{
+      diam.NewAVP(avp.ServiceParameterType, avp.Mbit, 0, ServiceParameterType1),
+      diam.NewAVP(avp.ServiceParameterValue, avp.Mbit, 0, ServiceParameterValue1),
+    },
+  })
+
+  r.NewAVP(avp.ServiceParameterInfo, avp.Mbit, 0, &diam.GroupedAVP{
+    AVP: []*diam.AVP{
+      diam.NewAVP(avp.ServiceParameterType, avp.Mbit, 0, ServiceParameterType2),
+      diam.NewAVP(avp.ServiceParameterValue, avp.Mbit, 0, ServiceParameterValue2),
+    },
+  })
+
+  log.Printf("Sending message to %s", c.RemoteAddr().String())
+  log.Println(r)
+
   // Send message to the connection
-  if _, err := m.WriteTo(c); err != nil {
+  if _, err := r.WriteTo(c); err != nil {
     log.Fatal("Write failed:", err)
   }
+
+  for {
+    time.Sleep(5 * time.Second)
+    m = diam.NewRequest(diam.DeviceWatchdog, 0, nil)
+    m.NewAVP(avp.OriginHost, avp.Mbit, 0, Identity)
+    m.NewAVP(avp.OriginRealm, avp.Mbit, 0, Realm)
+    m.NewAVP(avp.OriginStateId, avp.Mbit, 0, format.Unsigned32(rand.Uint32()))
+
+    log.Printf("Sending message to %s", c.RemoteAddr().String())
+    log.Println(m)
+    if _, err := m.WriteTo(c); err != nil {
+      log.Fatal("Write failed:", err)
+    }
+  }
+}
+
+// OnCEA handles Capabilities-Exchange-Answer messages.
+func OnCEA(c diam.Conn, m *diam.Message) {
+  rc, err := m.FindAVP(avp.ResultCode)
+  if err != nil {
+    log.Fatal(err)
+  }
+  if v, _ := rc.Data.(format.Unsigned32); v != diam.Success {
+    log.Fatal("Unexpected response:", rc)
+  }
+}
+
+// OnMSG handles all other messages and just print them.
+func OnMSG(c diam.Conn, m *diam.Message) {
+  log.Printf("Receiving message from %s", c.RemoteAddr().String())
+  log.Println(m)
 }
