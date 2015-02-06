@@ -59,6 +59,7 @@ func Charge(transaction_id string, msisdn string, server_address string) (sessio
     }
   })
 
+  diam.HandleFunc("CEA", OnCEA)
   diam.HandleFunc("ALL", OnMSG) // Catch-all.
 
   var (
@@ -159,6 +160,17 @@ func NewClient(c diam.Conn, transaction_id string, msisdn string) {
     if _, err := m.WriteTo(c); err != nil {
       log.Fatal("Write failed:", err)
     }
+  }
+}
+
+// OnCEA handles Capabilities-Exchange-Answer messages.
+func OnCEA(c diam.Conn, m *diam.Message) {
+  rc, err := m.FindAVP(avp.ResultCode)
+  if err != nil {
+    log.Fatal(err)
+  }
+  if v, _ := rc.Data.(format.Unsigned32); v != diam.Success {
+    log.Fatal("Unexpected response:", rc)
   }
 }
 
