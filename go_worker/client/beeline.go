@@ -11,7 +11,6 @@ import (
   "bytes"
   "math/rand"
   "net"
-  "time"
   "github.com/fiorix/go-diameter/diam"
   "github.com/fiorix/go-diameter/diam/avp"
   "github.com/fiorix/go-diameter/diam/avp/format"
@@ -57,6 +56,8 @@ func Charge(transaction_id string, msisdn string, server_address string) (sessio
     } else {
       result_code = result_code_avp.Data.String()
     }
+
+    c.Close()
   })
 
   diam.HandleFunc("CEA", OnCEA)
@@ -146,20 +147,6 @@ func NewClient(c diam.Conn, transaction_id string, msisdn string) {
   // Send message to the connection
   if _, err := r.WriteTo(c); err != nil {
     log.Fatal("Write failed:", err)
-  }
-
-  for {
-    time.Sleep(5 * time.Second)
-    m = diam.NewRequest(diam.DeviceWatchdog, 0, nil)
-    m.NewAVP(avp.OriginHost, avp.Mbit, 0, Identity)
-    m.NewAVP(avp.OriginRealm, avp.Mbit, 0, Realm)
-    m.NewAVP(avp.OriginStateId, avp.Mbit, 0, format.Unsigned32(rand.Uint32()))
-
-    log.Printf("Sending message to %s", c.RemoteAddr().String())
-    log.Println(m)
-    if _, err := m.WriteTo(c); err != nil {
-      log.Fatal("Write failed:", err)
-    }
   }
 }
 
