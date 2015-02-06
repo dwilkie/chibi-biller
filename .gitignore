@@ -18,3 +18,5 @@ vendor/ruby
 
 .env.production
 remove_focus.rb
+go-diameter-cca-client
+Godeps/_workspace
