@@ -50,7 +50,6 @@ func main() {
   config["server"] = redis_uri.Host
 
   if redis_uri.User != nil {
-    config["namespace"] = redis_uri.User.Username()
     password, _ := redis_uri.User.Password()
     config["password"] = password
   }
