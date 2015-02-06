@@ -36,55 +36,23 @@ const (
   ServiceParameterValue2 = format.OctetString("401")
 )
 
-func Charge(transaction_id string, msisdn string, server_address string) (session_id string, result_code string) {
-
-  dict.Default.Load(bytes.NewReader(dict.CreditControlXML))
-
-  // ALL incoming messages are handled here.
-
-  diam.HandleFunc("CCA", func(c diam.Conn, m *diam.Message) {
-    session_id_avp, err := m.FindAVP(avp.SessionId)
-    if err != nil {
-      log.Fatal(err)
-    } else {
-      session_id = session_id_avp.Data.String()
-    }
-
-    result_code_avp, err := m.FindAVP(avp.ResultCode)
-    if err != nil {
-      log.Fatal(err)
-    } else {
-      result_code = result_code_avp.Data.String()
-    }
-
-    c.Close()
-  })
-
-  diam.HandleFunc("CEA", OnCEA)
-  diam.HandleFunc("ALL", OnMSG) // Catch-all.
-
-  var (
-    c   diam.Conn
-    err error
-  )
-  c, err = diam.Dial(server_address, nil, nil)
+func Connect(server_address string) (connection diam.Conn) {
+  var err error
+  connection, err = diam.Dial(server_address, nil, nil)
 
   if err != nil {
     log.Fatal(err)
   }
 
-  go NewClient(c, transaction_id, msisdn)
+  diam.HandleFunc("CEA", OnCEA)
+  diam.HandleFunc("ALL", OnMSG) // Catch-all.
 
-  // Wait until the server kicks us out.
+  go SendCER(connection)
 
-  <-c.(diam.CloseNotifier).CloseNotify()
-  log.Println("Server disconnected.")
-
-  return session_id, result_code
+  return connection
 }
 
-// NewClient sends a CER to the server and then a DWR every 10 seconds.
-func NewClient(c diam.Conn, transaction_id string, msisdn string) {
+func SendCER(c diam.Conn) {
   // Build CER
   m := diam.NewRequest(diam.CapabilitiesExchange, 0, nil)
   // Add AVPs
@@ -106,7 +74,36 @@ func NewClient(c diam.Conn, transaction_id string, msisdn string) {
   if _, err := m.WriteTo(c); err != nil {
     log.Fatal("Write failed:", err)
   }
+}
 
+func Charge(connection diam.Conn, transaction_id string, msisdn string) (session_id string, result_code string) {
+  dict.Default.Load(bytes.NewReader(dict.CreditControlXML))
+
+  // ALL incoming messages are handled here.
+
+  diam.HandleFunc("CCA", func(c diam.Conn, m *diam.Message) {
+    session_id_avp, err := m.FindAVP(avp.SessionId)
+    if err != nil {
+      log.Fatal(err)
+    } else {
+      session_id = session_id_avp.Data.String()
+    }
+
+    result_code_avp, err := m.FindAVP(avp.ResultCode)
+    if err != nil {
+      log.Fatal(err)
+    } else {
+      result_code = result_code_avp.Data.String()
+    }
+  })
+
+  go SendCCR(connection, transaction_id, msisdn)
+
+  return session_id, result_code
+}
+
+// NewClient sends a CER to the server and then a DWR every 10 seconds.
+func SendCCR(c diam.Conn, transaction_id string, msisdn string) {
   // Craft a CCR message.
   r := diam.NewRequest(diam.CreditControl, 4, nil)
   r.NewAVP(avp.SessionId, avp.Mbit, 0, format.UTF8String(transaction_id))

@@ -3,11 +3,14 @@ package main
 import (
   "github.com/jrallison/go-workers"
   "github.com/joho/godotenv"
+  "github.com/fiorix/go-diameter/diam"
   "os"
   "strconv"
   "net/url"
   "./client"
 )
+
+var connection diam.Conn
 
 func beelineChargeRequestJob(message *workers.Msg) {
   args := message.Args().GetIndex(0).Get("arguments").MustArray()
@@ -15,9 +18,8 @@ func beelineChargeRequestJob(message *workers.Msg) {
   msisdn := args[1].(string)
   updater_queue := args[2].(string)
   updater_worker := args[3].(string)
-  server_address := args[4].(string)
 
-  session_id, result_code := beeline.Charge(transaction_id, msisdn, server_address)
+  session_id, result_code := beeline.Charge(connection, transaction_id, msisdn)
   workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
 }
 
@@ -35,6 +37,9 @@ func main() {
 
   // Queue configuration
   beeline_charge_request_queue := os.Getenv("BEELINE_CHARGE_REQUEST_QUEUE")
+
+  // Billing server configuration
+  beeline_billing_server_address := os.Getenv("BEELINE_BILLING_SERVER_ADDRESS")
 
   redis_uri, _ := url.Parse(redis_url)
 
@@ -55,6 +60,7 @@ func main() {
   }
 
   workers.Configure(config)
+  connection = beeline.Connect(beeline_billing_server_address)
 
   workers.Process(beeline_charge_request_queue, beelineChargeRequestJob, go_worker_concurrency)
   // Add additional workers here
