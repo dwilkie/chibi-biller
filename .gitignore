@@ -20,3 +20,4 @@ vendor/ruby
 remove_focus.rb
 go-diameter-cca-client
 Godeps/_workspace
+.rbenv-vars

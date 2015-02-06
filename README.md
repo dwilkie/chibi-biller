@@ -14,6 +14,10 @@ Chibi Biller is set up for CI. To deploy:
 git push origin master
 ```
 
+### ENV Vars
+
+All environment variables should be set in `.rbenv-vars` on the server. This file should be in the shared folder and have `600` permissions. See [.env](https://github.com/dwilkie/chibi-biller/blob/master/.env) for a list of the required variables.
+
 ### Deploying Chibi-Biller-Beeline
 
 This will create an upstart job for chibi-biller-beeline and start it

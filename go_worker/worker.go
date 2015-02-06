@@ -2,7 +2,10 @@ package main
 
 import (
   "github.com/jrallison/go-workers"
-  "github.com/dwilkie/go-diameter-cca-client/client"
+  "github.com/joho/godotenv"
+  "os"
+  "strconv"
+  "./client"
 )
 
 func beelineChargeRequestJob(message *workers.Msg) {
@@ -18,18 +21,32 @@ func beelineChargeRequestJob(message *workers.Msg) {
 }
 
 func main() {
+  godotenv.Load(".rbenv-vars")
+
+  // Redis configuration
+  redis_url := os.Getenv("REDIS_PROVIDER_GO_WORKER")
+  redis_pool := os.Getenv("REDIS_POOL")
+  redis_database_instance := os.Getenv("REDIS_DATABASE_INSTANCE")
+  redis_worker_process_id := os.Getenv("REDIS_WORKER_PROCESS_ID")
+
+  // goworker configuration
+  go_worker_concurrency, _ := strconv.Atoi(os.Getenv("GO_WORKER_CONCURRENCY"))
+
+  // Queue configuration
+  beeline_charge_request_queue := os.Getenv("BEELINE_CHARGE_REQUEST_QUEUE")
+
   workers.Configure(map[string]string{
     // location of redis instance
-    "server":  "localhost:6379",
+    "server":  redis_url,
     // instance of the database
-    "database":  "0",
+    "database":  redis_database_instance,
     // number of connections to keep open with redis
-    "pool":    "30",
+    "pool":    redis_pool,
     // unique process id for this instance of workers (for proper recovery of inprogress jobs on crash)
-    "process": "1",
+    "process": redis_worker_process_id,
   })
 
-  workers.Process("beeline_charge_request_queue", beelineChargeRequestJob, 10)
+  workers.Process(beeline_charge_request_queue, beelineChargeRequestJob, go_worker_concurrency)
   // Add additional workers here
 
   workers.Run()
