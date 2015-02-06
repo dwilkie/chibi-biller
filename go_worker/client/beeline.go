@@ -43,8 +43,6 @@ func Charge(transaction_id string, msisdn string, server_address string) (sessio
   // ALL incoming messages are handled here.
 
   diam.HandleFunc("CCA", func(c diam.Conn, m *diam.Message) {
-    log.Println("MESSAGE: ")
-    log.Println(m)
     session_id_avp, err := m.FindAVP(avp.SessionId)
     if err != nil {
       log.Fatal(err)
@@ -57,8 +55,6 @@ func Charge(transaction_id string, msisdn string, server_address string) (sessio
       log.Fatal(err)
     } else {
       result_code = result_code_avp.Data.String()
-      log.Println("RESULT CODE: ")
-      log.Println(result_code)
     }
 
     c.Close()

@@ -6,6 +6,7 @@ import (
   "os"
   "strconv"
   "net/url"
+  "log"
   "./client"
 )
 
@@ -18,6 +19,8 @@ func beelineChargeRequestJob(message *workers.Msg) {
   server_address := args[4].(string)
 
   session_id, result_code := beeline.Charge(transaction_id, msisdn, server_address)
+  log.Println("session_id: " + session_id)
+  log.Println("result_code: " + result_code)
   workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
 }
 
