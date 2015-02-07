@@ -11,11 +11,14 @@ import (
   "bytes"
   "math/rand"
   "net"
+  "net/http"
+  "errors"
   "github.com/fiorix/go-diameter/diam"
   "github.com/fiorix/go-diameter/diam/avp"
   "github.com/fiorix/go-diameter/diam/avp/format"
   "github.com/fiorix/go-diameter/diam/dict"
   "github.com/jrallison/go-workers"
+  "github.com/dwilkie/gobrake"
 )
 
 const (
@@ -37,14 +40,21 @@ const (
   ServiceParameterValue2 = format.OctetString("401")
 )
 
+var Airbrake *gobrake.Notifier
+
+func NotifyError(err error) {
+  req, _ := http.NewRequest("GET", "http://example.com", nil)
+  Airbrake.Notify(err, req)
+}
+
 func Connect(server_address string) (c diam.Conn) {
   var err error
   c, err = diam.Dial(server_address, nil, nil)
 
   if err != nil {
+    NotifyError(err)
     log.Fatal(err)
   }
-
   diam.HandleFunc("CEA", OnCEA)
   diam.HandleFunc("ALL", OnMSG) // Catch-all.
 
@@ -73,6 +83,7 @@ func SendCER(c diam.Conn) {
 
   // Send message to the connection
   if _, err := m.WriteTo(c); err != nil {
+    NotifyError(err)
     log.Fatal("Write failed:", err)
   }
 }
@@ -128,6 +139,7 @@ func SendCCR(c diam.Conn, transaction_id string, msisdn string) {
 
   // Send message to the connection
   if _, err := r.WriteTo(c); err != nil {
+    NotifyError(err)
     log.Fatal("Write failed:", err)
   }
 }
@@ -136,11 +148,13 @@ func SendCCR(c diam.Conn, transaction_id string, msisdn string) {
 func OnCEA(c diam.Conn, m *diam.Message) {
   rc, err := m.FindAVP(avp.ResultCode)
   if err != nil {
+    NotifyError(err)
     log.Fatal(err)
   }
   if v, _ := rc.Data.(format.Unsigned32); v != diam.Success {
-    // Panic here
-    log.Printf("This will raise an Airbrake exception in the future. Unexpected response: ", rc)
+    err := errors.New("Unsuccessful CER: " + rc.String())
+    NotifyError(err)
+    log.Fatal(err)
   }
 }
 
@@ -150,6 +164,7 @@ func OnCCA(updater_queue string, updater_worker string) diam.HandlerFunc {
 
     session_id_avp, err := m.FindAVP(avp.SessionId)
     if err != nil {
+      NotifyError(err)
       log.Fatal(err)
     } else {
       session_id = session_id_avp.Data.String()
@@ -157,6 +172,7 @@ func OnCCA(updater_queue string, updater_worker string) diam.HandlerFunc {
 
     result_code_avp, err := m.FindAVP(avp.ResultCode)
     if err != nil {
+      NotifyError(err)
       log.Fatal(err)
     } else {
       result_code = result_code_avp.Data.String()

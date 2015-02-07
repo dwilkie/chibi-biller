@@ -4,6 +4,7 @@ import (
   "github.com/jrallison/go-workers"
   "github.com/joho/godotenv"
   "github.com/fiorix/go-diameter/diam"
+  "github.com/dwilkie/gobrake"
   "os"
   "strconv"
   "net/url"
@@ -30,6 +31,14 @@ func main() {
   redis_pool := os.Getenv("REDIS_POOL")
   redis_database_instance := os.Getenv("REDIS_DATABASE_INSTANCE")
   redis_worker_process_id := os.Getenv("REDIS_WORKER_PROCESS_ID")
+
+  // Airbrake configuration
+  airbrake_api_key := os.Getenv("AIRBRAKE_API_KEY")
+  airbrake_host := os.Getenv("AIRBRAKE_HOST")
+  airbrake_project_id, _ := strconv.ParseInt(os.Getenv("AIRBRAKE_PROJECT_ID"), 10, 64)
+
+  // environment
+  environment := os.Getenv("RAILS_ENV")
 
   // goworker configuration
   go_worker_concurrency, _ := strconv.Atoi(os.Getenv("GO_WORKER_CONCURRENCY"))
@@ -59,6 +68,11 @@ func main() {
   }
 
   workers.Configure(config)
+
+  airbrake := gobrake.NewNotifier(airbrake_project_id, airbrake_api_key, airbrake_host)
+  airbrake.SetContext("environment", environment)
+
+  beeline.Airbrake = airbrake
   connection = beeline.Connect(beeline_billing_server_address)
 
   workers.Process(beeline_charge_request_queue, beelineChargeRequestJob, go_worker_concurrency)
