@@ -15,6 +15,7 @@ import (
   "github.com/fiorix/go-diameter/diam/avp"
   "github.com/fiorix/go-diameter/diam/avp/format"
   "github.com/fiorix/go-diameter/diam/dict"
+  "github.com/jrallison/go-workers"
 )
 
 const (
@@ -76,38 +77,14 @@ func SendCER(c diam.Conn) {
   }
 }
 
-func Charge(c diam.Conn, transaction_id string, msisdn string) (session_id string, result_code string) {
+func Charge(c diam.Conn, transaction_id string, msisdn string, updater_queue string, updater_worker string) {
   dict.Default.Load(bytes.NewReader(dict.CreditControlXML))
 
   // ALL incoming messages are handled here.
 
-  diam.HandleFunc("CCA", func(c diam.Conn, m *diam.Message) {
-    session_id_avp, err := m.FindAVP(avp.SessionId)
-    if err != nil {
-      log.Fatal(err)
-    } else {
-      session_id = session_id_avp.Data.String()
-    }
-
-    result_code_avp, err := m.FindAVP(avp.ResultCode)
-    if err != nil {
-      log.Fatal(err)
-    } else {
-      result_code = result_code_avp.Data.String()
-    }
-
-    log.Println("RESULT CODE IS: ")
-    log.Println(result_code)
-  })
+  diam.Handle("CCA", OnCCA(updater_queue, updater_worker))
 
   go SendCCR(c, transaction_id, msisdn)
-
-  // Wait until the server kick us out.
-  <-c.(diam.CloseNotifier).CloseNotify()
-
-  log.Println("RETURNING NOW!....")
-
-  return session_id, result_code
 }
 
 // NewClient sends a CER to the server and then a DWR every 10 seconds.
@@ -164,6 +141,30 @@ func OnCEA(c diam.Conn, m *diam.Message) {
   if v, _ := rc.Data.(format.Unsigned32); v != diam.Success {
     // Panic here
     log.Printf("This will raise an Airbrake exception in the future. Unexpected response: ", rc)
+  }
+}
+
+func OnCCA(updater_queue string, updater_worker string) diam.HandlerFunc {
+  return func(c diam.Conn, m *diam.Message) {
+    var session_id, result_code string
+
+    session_id_avp, err := m.FindAVP(avp.SessionId)
+    if err != nil {
+      log.Fatal(err)
+    } else {
+      session_id = session_id_avp.Data.String()
+    }
+
+    result_code_avp, err := m.FindAVP(avp.ResultCode)
+    if err != nil {
+      log.Fatal(err)
+    } else {
+      result_code = result_code_avp.Data.String()
+    }
+
+    log.Println("CCA Received! Enqueing session_id: " + session_id + " result code " + result_code)
+
+    workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
   }
 }
 
