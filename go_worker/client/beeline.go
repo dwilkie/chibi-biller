@@ -36,9 +36,9 @@ const (
   ServiceParameterValue2 = format.OctetString("401")
 )
 
-func Connect(server_address string) (connection diam.Conn) {
+func Connect(server_address string) (c diam.Conn) {
   var err error
-  connection, err = diam.Dial(server_address, nil, nil)
+  c, err = diam.Dial(server_address, nil, nil)
 
   if err != nil {
     log.Fatal(err)
@@ -47,9 +47,9 @@ func Connect(server_address string) (connection diam.Conn) {
   diam.HandleFunc("CEA", OnCEA)
   diam.HandleFunc("ALL", OnMSG) // Catch-all.
 
-  go SendCER(connection)
+  go SendCER(c)
 
-  return connection
+  return c
 }
 
 func SendCER(c diam.Conn) {
@@ -76,7 +76,7 @@ func SendCER(c diam.Conn) {
   }
 }
 
-func Charge(connection diam.Conn, transaction_id string, msisdn string) (session_id string, result_code string) {
+func Charge(c diam.Conn, transaction_id string, msisdn string) (session_id string, result_code string) {
   dict.Default.Load(bytes.NewReader(dict.CreditControlXML))
 
   // ALL incoming messages are handled here.
@@ -95,9 +95,17 @@ func Charge(connection diam.Conn, transaction_id string, msisdn string) (session
     } else {
       result_code = result_code_avp.Data.String()
     }
+
+    log.Println("RESULT CODE IS: ")
+    log.Println(result_code)
   })
 
-  go SendCCR(connection, transaction_id, msisdn)
+  go SendCCR(c, transaction_id, msisdn)
+
+  // Wait until the server kick us out.
+  <-c.(diam.CloseNotifier).CloseNotify()
+
+  log.Println("RETURNING NOW!....")
 
   return session_id, result_code
 }
