@@ -6,6 +6,7 @@ gem 'rails', '4.2.0'
 gem 'unicorn'
 gem 'httparty'
 gem 'sidekiq'
+gem 'airbrake'
 
 group :development do
   gem 'capistrano'
