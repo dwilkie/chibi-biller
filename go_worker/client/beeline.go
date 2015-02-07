@@ -162,8 +162,6 @@ func OnCCA(updater_queue string, updater_worker string) diam.HandlerFunc {
       result_code = result_code_avp.Data.String()
     }
 
-    log.Println("CCA Received! Enqueing session_id: " + session_id + " result code " + result_code)
-
     workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
   }
 }

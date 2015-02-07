@@ -29,7 +29,6 @@ describe ChargeRequest::Beeline do
           mobile_number,
           BeelineChargeRequestUpdaterJob.queue_name,
           BeelineChargeRequestUpdaterJob.to_s,
-          Rails.application.secrets[:beeline_billing_server_address]
         ]
       )
     end

@@ -13,8 +13,7 @@ import (
 var connection diam.Conn
 
 func beelineChargeRequestJob(message *workers.Msg) {
-//  args := message.Args().GetIndex(0).Get("arguments").MustArray()
-  args := message.Args().MustArray()
+  args := message.Args().GetIndex(0).Get("arguments").MustArray()
   transaction_id := args[0].(string)
   msisdn := args[1].(string)
   updater_queue := args[2].(string)
@@ -64,8 +63,6 @@ func main() {
 
   workers.Process(beeline_charge_request_queue, beelineChargeRequestJob, go_worker_concurrency)
   // Add additional workers here
-
-  workers.Enqueue("beeline_charge_request_queue", "beelineChargeRequestJob", []string{"9999", "85568820074", "beeline_charge_request_updater_queue", "BeelineChargeRequestUpdaterJob"})
 
   workers.Run()
 }
