@@ -7,9 +7,8 @@ GIT
       thor (~> 0.19.1)
 
 GIT
-  remote: git://github.com/dwilkie/capistrano-foreman.git
-  revision: 32d1a4f68da6649309b562c1c2c86cf65da227cb
-  branch: different_sudo_flavors
+  remote: git://github.com/hyperoslo/capistrano-foreman.git
+  revision: 1e3ec419c77ae0864879b05bc2271aba3a228481
   specs:
     capistrano-foreman (1.1.0)
       capistrano (~> 3.1)

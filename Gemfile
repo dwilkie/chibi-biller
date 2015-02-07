@@ -13,7 +13,7 @@ group :development do
   gem 'capistrano-rails'
   gem 'capistrano-rbenv'
   gem 'capistrano-bundler'
-  gem 'capistrano-foreman', :github => "dwilkie/capistrano-foreman", :branch => "different_sudo_flavors"
+  gem 'capistrano-foreman', :github => "hyperoslo/capistrano-foreman"
 end
 
 group :deployment, :development do
