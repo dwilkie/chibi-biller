@@ -31,9 +31,11 @@ func beelineChargeRequestJob(message *workers.Msg) {
   airbrake := gobrake.NewNotifier(airbrake_project_id, airbrake_api_key, airbrake_host)
   airbrake.SetContext("environment", environment)
 
-  log.Println("Executing Charge Request")
+  log.Println("Executing Charge Beeline Charge Request: #%s on %s for Subscriber: %s", transaction_id, server_address, msisdn)
+
   beeline.Charge(server_address, transaction_id, msisdn, updater_queue, updater_worker, airbrake)
-  log.Println("Finished Job")
+
+  log.Println("Finished Executing Beeline Charge Request: %s on %s for Subscriber: %s", transaction_id, server_address, msisdn)
 }
 
 func main() {

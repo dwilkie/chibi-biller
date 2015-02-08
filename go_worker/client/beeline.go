@@ -181,9 +181,13 @@ func OnCCA(updater_queue string, updater_worker string, airbrake *gobrake.Notifi
       result_code = result_code_avp.Data.String()
     }
 
+    log.Println("Enqueuing job to: %s, with args: [%s, %s]", updater_queue, session_id, result_code)
+
     workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
-    c.(diam.CloseNotifier).CloseNotify()
-    log.Println("Server disconnected.")
+
+    c.Close()
+
+    log.Println("Server disconnected after receiving CCA with session_id: %s", session_id)
   }
 }
 
