@@ -66,6 +66,32 @@ describe ChargeRequestResult::Beeline do
         :reason => {
           :expected => "diameter_cca_client_error_5031"
         }
+      },
+      {
+        :transaction_id => {
+          :actual => "UTF8String{4850},Padding:0",
+          :expected => "4850"
+        },
+        :result => {
+          :actual => "Unsigned32{5030}",
+          :expected => "errored"
+        },
+        :reason => {
+          :expected => "diameter_cca_client_error_5030"
+        }
+      },
+      {
+        :transaction_id => {
+          :actual => "UTF8String{4851},Padding:0",
+          :expected => "4851"
+        },
+        :result => {
+          :actual => "Unsigned32{4011}",
+          :expected => "errored"
+        },
+        :reason => {
+          :expected => "charge_not_applicable"
+        }
       }
     ]
 

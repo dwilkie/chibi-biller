@@ -1,11 +1,14 @@
 class ChargeRequestResult::Beeline < ::ChargeRequestResult::Base
   DIAMETER_SUCCESSFUL = "2001"
-  DIAMETER_CLIENT_ERROR = [CHIBI_ERRORED, "diameter_cca_client_error_5031"]
+  DIAMETER_USER_UNKNOWN = [CHIBI_ERRORED, "diameter_cca_client_error_5030"]
+  DIAMETER_RATING_FAILED = [CHIBI_ERRORED, "diameter_cca_client_error_5031"]
 
   DIAMETER_REASON_VALUES = {
     "4010" => CHIBI_INVALID_NUMBER,
+    "4011" => CHIBI_CHARGE_NOT_APPLICABLE,
     "4012" => CHIBI_NOT_ENOUGH_CREDIT,
-    "5031" => DIAMETER_CLIENT_ERROR
+    "5030" => DIAMETER_USER_UNKNOWN,
+    "5031" => DIAMETER_RATING_FAILED,
   }
 
   private
