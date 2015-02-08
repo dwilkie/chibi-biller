@@ -13,6 +13,8 @@ import (
   "net"
   "net/http"
   "errors"
+  "os"
+  "strconv"
   "github.com/fiorix/go-diameter/diam"
   "github.com/fiorix/go-diameter/diam/avp"
   "github.com/fiorix/go-diameter/diam/avp/format"
@@ -40,9 +42,37 @@ const (
   ServiceParameterValue2 = format.OctetString("401")
 )
 
+func ChargeRequestJob(message *workers.Msg) {
+  args := message.Args().GetIndex(0).Get("arguments").MustArray()
+  transaction_id := args[0].(string)
+  msisdn := args[1].(string)
+  updater_queue := args[2].(string)
+  updater_worker := args[3].(string)
+
+  server_address := os.Getenv("BEELINE_BILLING_SERVER_ADDRESS")
+
+  // Airbrake configuration
+  airbrake_api_key := os.Getenv("AIRBRAKE_API_KEY")
+  airbrake_host := os.Getenv("AIRBRAKE_HOST")
+  airbrake_project_id, _ := strconv.ParseInt(os.Getenv("AIRBRAKE_PROJECT_ID"), 10, 64)
+
+  // environment
+  environment := os.Getenv("RAILS_ENV")
+
+  airbrake := gobrake.NewNotifier(airbrake_project_id, airbrake_api_key, airbrake_host)
+  airbrake.SetContext("environment", environment)
+
+  log.Printf("Executing Charge Beeline Charge Request: #%s on %s for Subscriber: %s", transaction_id, server_address, msisdn)
+
+  Charge(server_address, transaction_id, msisdn, updater_queue, updater_worker, airbrake)
+
+  log.Printf("Finished Executing Beeline Charge Request: %s on %s for Subscriber: %s", transaction_id, server_address, msisdn)
+}
+
 func NotifyError(airbrake *gobrake.Notifier, err error) {
   req, _ := http.NewRequest("GET", "http://example.com", nil)
   airbrake.Notify(err, req)
+  log.Print(err)
 }
 
 func Charge(server_address string, transaction_id string, msisdn string, updater_queue string, updater_worker string, airbrake *gobrake.Notifier) {
@@ -62,11 +92,12 @@ func Charge(server_address string, transaction_id string, msisdn string, updater
   c, err = diam.Dial(server_address, nil, nil)
 
   if err != nil {
-    NotifyError(airbrake, err)
-    log.Fatal(err)
+    go NotifyError(airbrake, err)
+    return
   }
 
-  NewClient(c, airbrake)
+  // Don't wait for NewClient to finish executing before ending this function
+  go NewClient(c, airbrake)
 }
 
 func NewClient(c diam.Conn, airbrake *gobrake.Notifier) {
@@ -89,8 +120,8 @@ func NewClient(c diam.Conn, airbrake *gobrake.Notifier) {
 
   // Send message to the connection
   if _, err := m.WriteTo(c); err != nil {
-    NotifyError(airbrake, err)
-    log.Fatal("Write failed:", err)
+    go NotifyError(airbrake, err)
+    c.Close()
   }
 }
 
@@ -103,13 +134,15 @@ func OnCEA(transaction_id string, msisdn string, airbrake *gobrake.Notifier) dia
 
     rc, err := m.FindAVP(avp.ResultCode)
     if err != nil {
-      NotifyError(airbrake, err)
-      log.Fatal(err)
+      go NotifyError(airbrake, err)
+      c.Close()
+      return
     }
     if v, _ := rc.Data.(format.Unsigned32); v != diam.Success {
       err := errors.New("Unsuccessful CER: " + rc.String())
-      NotifyError(airbrake, err)
-      log.Fatal(err)
+      go NotifyError(airbrake, err)
+      c.Close()
+      return
     }
 
     // Craft a CCR message.
@@ -152,8 +185,8 @@ func OnCEA(transaction_id string, msisdn string, airbrake *gobrake.Notifier) dia
 
     // Send message to the connection
     if _, err := r.WriteTo(c); err != nil {
-      NotifyError(airbrake, err)
-      log.Fatal("Write failed:", err)
+      go NotifyError(airbrake, err)
+      c.Close()
     }
   }
 }
@@ -167,16 +200,18 @@ func OnCCA(updater_queue string, updater_worker string, airbrake *gobrake.Notifi
 
     session_id_avp, err := m.FindAVP(avp.SessionId)
     if err != nil {
-      NotifyError(airbrake, err)
-      log.Fatal(err)
+      go NotifyError(airbrake, err)
+      c.Close()
+      return
     } else {
       session_id = session_id_avp.Data.String()
     }
 
     result_code_avp, err := m.FindAVP(avp.ResultCode)
     if err != nil {
-      NotifyError(airbrake, err)
-      log.Fatal(err)
+      go NotifyError(airbrake, err)
+      c.Close()
+      return
     } else {
       result_code = result_code_avp.Data.String()
     }

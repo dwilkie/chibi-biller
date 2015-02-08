@@ -1,42 +1,13 @@
 package main
 
 import (
-  "log"
   "os"
   "strconv"
   "net/url"
   "github.com/jrallison/go-workers"
   "github.com/joho/godotenv"
-  "github.com/dwilkie/gobrake"
   "./client"
 )
-
-func beelineChargeRequestJob(message *workers.Msg) {
-  args := message.Args().GetIndex(0).Get("arguments").MustArray()
-  transaction_id := args[0].(string)
-  msisdn := args[1].(string)
-  updater_queue := args[2].(string)
-  updater_worker := args[3].(string)
-
-  server_address := os.Getenv("BEELINE_BILLING_SERVER_ADDRESS")
-
-  // Airbrake configuration
-  airbrake_api_key := os.Getenv("AIRBRAKE_API_KEY")
-  airbrake_host := os.Getenv("AIRBRAKE_HOST")
-  airbrake_project_id, _ := strconv.ParseInt(os.Getenv("AIRBRAKE_PROJECT_ID"), 10, 64)
-
-  // environment
-  environment := os.Getenv("RAILS_ENV")
-
-  airbrake := gobrake.NewNotifier(airbrake_project_id, airbrake_api_key, airbrake_host)
-  airbrake.SetContext("environment", environment)
-
-  log.Printf("Executing Charge Beeline Charge Request: #%s on %s for Subscriber: %s", transaction_id, server_address, msisdn)
-
-  beeline.Charge(server_address, transaction_id, msisdn, updater_queue, updater_worker, airbrake)
-
-  log.Printf("Finished Executing Beeline Charge Request: %s on %s for Subscriber: %s", transaction_id, server_address, msisdn)
-}
 
 func main() {
   godotenv.Load(".rbenv-vars")
@@ -73,7 +44,7 @@ func main() {
 
   workers.Configure(config)
 
-  workers.Process(beeline_charge_request_queue, beelineChargeRequestJob, go_worker_concurrency)
+  workers.Process(beeline_charge_request_queue, beeline.ChargeRequestJob, go_worker_concurrency)
   // Add additional workers here
 
   workers.Run()
