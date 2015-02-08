@@ -97,6 +97,10 @@ func NewClient(c diam.Conn, airbrake *gobrake.Notifier) {
 // OnCEA handles Capabilities-Exchange-Answer messages.
 func OnCEA(transaction_id string, msisdn string, airbrake *gobrake.Notifier) diam.HandlerFunc {
   return func(c diam.Conn, m *diam.Message) {
+
+    log.Printf("Receiving message from %s", c.RemoteAddr().String())
+    log.Println(m)
+
     rc, err := m.FindAVP(avp.ResultCode)
     if err != nil {
       NotifyError(airbrake, err)
@@ -158,6 +162,9 @@ func OnCCA(updater_queue string, updater_worker string, airbrake *gobrake.Notifi
   return func(c diam.Conn, m *diam.Message) {
     var session_id, result_code string
 
+    log.Printf("Receiving message from %s", c.RemoteAddr().String())
+    log.Println(m)
+
     session_id_avp, err := m.FindAVP(avp.SessionId)
     if err != nil {
       NotifyError(airbrake, err)
@@ -175,6 +182,7 @@ func OnCCA(updater_queue string, updater_worker string, airbrake *gobrake.Notifi
     }
 
     workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
+    c.Close() // Close the connection
   }
 }
 
