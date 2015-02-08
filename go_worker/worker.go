@@ -1,12 +1,13 @@
 package main
 
 import (
-  "github.com/jrallison/go-workers"
-  "github.com/joho/godotenv"
-  "github.com/dwilkie/gobrake"
+  "log"
   "os"
   "strconv"
   "net/url"
+  "github.com/jrallison/go-workers"
+  "github.com/joho/godotenv"
+  "github.com/dwilkie/gobrake"
   "./client"
 )
 
@@ -30,7 +31,9 @@ func beelineChargeRequestJob(message *workers.Msg) {
   airbrake := gobrake.NewNotifier(airbrake_project_id, airbrake_api_key, airbrake_host)
   airbrake.SetContext("environment", environment)
 
+  log.Println("Executing Charge Request")
   beeline.Charge(server_address, transaction_id, msisdn, updater_queue, updater_worker, airbrake)
+  log.Println("Finished Job")
 }
 
 func main() {

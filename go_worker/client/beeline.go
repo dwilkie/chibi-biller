@@ -182,7 +182,8 @@ func OnCCA(updater_queue string, updater_worker string, airbrake *gobrake.Notifi
     }
 
     workers.Enqueue(updater_queue, updater_worker, []string{session_id, result_code})
-    c.Close() // Close the connection
+    c.(diam.CloseNotifier).CloseNotify()
+    log.Println("Server disconnected.")
   }
 }
 
