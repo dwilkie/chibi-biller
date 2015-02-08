@@ -14,6 +14,9 @@ class ChargeRequestResult::Beeline < ::ChargeRequestResult::Base
   private
 
   def parse_result
+    puts "PARSING RESULT"
+    puts "PARAMS:"
+    puts params
     self.id = parse_diameter_data(params[:session_id])
     diameter_result = parse_diameter_data(params[:result_code])
     if diameter_result == DIAMETER_SUCCESSFUL
